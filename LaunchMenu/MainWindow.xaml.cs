@@ -58,6 +58,7 @@ namespace LaunchMenu
                     button.Width = 50;
                     button.CommandParameter = path;
                     button.Click += RunApplication;
+                    button.ToolTip = name;
 
                     wp_Content.Children.Add(button);
                 }
