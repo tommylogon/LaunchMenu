@@ -7,6 +7,6 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        
+        <Button x:Name="button" Content="Add connection" HorizontalAlignment="Left" Margin="549,76,0,0" VerticalAlignment="Top" Width="75" />
     </Grid>
 </Window>
