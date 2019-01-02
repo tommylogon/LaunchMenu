@@ -2,22 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using Path = System.IO.Path;
+using Image = System.Windows.Controls.Image;
+using Brushes = System.Windows.Media.Brush;
 
 namespace LaunchMenu
 {
@@ -26,46 +18,97 @@ namespace LaunchMenu
     /// </summary>
     public partial class MainWindow : Window
     {
-        private string currentDirectory = Environment.CurrentDirectory + @"\..\..\shortcuts";
-        public List<Button> Buttons { get; set; } = new List<Button>();
+        private string shortcutDirectory = Environment.CurrentDirectory + @"\Shortcuts";
+
+        private List<Button> buttons = new List<Button>();
 
         public MainWindow()
         {
             InitializeComponent();
+            if (!Directory.Exists(shortcutDirectory))
+            {
+                Directory.CreateDirectory(shortcutDirectory);
+            }
 
             ReadShortcuts();
         }
 
+        private void AddBorder()
+        {
+            Border border = new Border();
+            border.Height = 5;
+            border.Width = wp_Content.Width;
+            //border.Background = new SolidBrush();
+            wp_Content.Children.Add(border);
+        }
+
+        private void AddTitle(string directory)
+        {
+            Label groupTitle = new Label();
+            groupTitle.Content = Path.GetFileName(directory);
+
+            wp_Content.Children.Add(groupTitle);
+            AddBorder();
+        }
+
         private void ReadShortcuts()
         {
-            foreach (string file in Directory.GetFiles(currentDirectory))
+            foreach (string directory in Directory.GetDirectories(shortcutDirectory))
+            {
+                AddTitle(directory);
+
+                foreach (string file in Directory.GetFiles(directory))
+                {
+                    AddButtonsToWrapPanel(file);
+                }
+                AddBorder();
+            }
+            AddTitle("Andre");
+            foreach (string file in Directory.GetFiles(shortcutDirectory))
             {
                 try
                 {
-                    GetShortcutInfo(Path.GetFullPath(file), out string name, out string path, out string descr, out string workdir, out string args);
-
-                    System.Windows.Controls.Image img = new System.Windows.Controls.Image();
-
-                    Icon icon = System.Drawing.Icon.ExtractAssociatedIcon(path);
-
-                    Bitmap bitmap = icon.ToBitmap();
-                    IntPtr hBitmap = bitmap.GetHbitmap();
-
-                    img.Source = Imaging.CreateBitmapSourceFromHBitmap(hBitmap, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-
-                    Button button = new Button();
-                    button.Content = img;
-                    button.Width = 50;
-                    button.CommandParameter = path;
-                    button.Click += RunApplication;
-                    button.ToolTip = name;
-
-                    wp_Content.Children.Add(button);
+                    AddButtonsToWrapPanel(file);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Console.WriteLine(ex.Message);
                 }
             }
+        }
+
+        private void AddButtonsToWrapPanel(string file)
+        {
+            GetShortcutInfo(file, out string name, out string path, out string descr, out string workdir, out string args);
+            Button button = new Button
+            {
+                Content = GetImageFromIcon(path),
+                Width = 50,
+                CommandParameter = path
+            };
+            button.Click += RunApplication;
+            button.ToolTip = name;
+            button.Margin = new Thickness()
+            {
+                Left = 2,
+                Right = 2,
+                Top = 2,
+                Bottom = 2
+            };
+            wp_Content.Children.Add(button);
+        }
+
+        private Image GetImageFromIcon(string path)
+        {
+            Image img = new Image();
+
+            Icon icon = System.Drawing.Icon.ExtractAssociatedIcon(path);
+
+            Bitmap bitmap = icon.ToBitmap();
+            IntPtr hBitmap = bitmap.GetHbitmap();
+
+            img.Source = Imaging.CreateBitmapSourceFromHBitmap(hBitmap, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+            return img;
         }
 
         private void RunApplication(object sender, RoutedEventArgs e)
@@ -75,21 +118,9 @@ namespace LaunchMenu
             proc.Start();
         }
 
-        private void RunAllApps(object sender, RoutedEventArgs e)
+        private void OpenShortcutFolder(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                foreach (string file in Directory.GetFiles(currentDirectory))
-                {
-                    Console.WriteLine(file);
-                    Process proc = new Process();
-                    proc.StartInfo.FileName = file;
-                    proc.Start();
-                }
-            }
-            catch (Exception ex)
-            {
-            }
+            Process.Start(shortcutDirectory);
         }
 
         private string GetShortcutInfo(string full_name, out string name, out string path, out string descr, out string working_dir, out string args)
@@ -125,7 +156,17 @@ namespace LaunchMenu
                     (Shell32.ShellLinkObject)folder_item.GetLink;
                 name = folder_item.Name;
                 descr = lnk.Description;
-                path = lnk.Path;
+                if (File.Exists(lnk.Path))
+                {
+                    path = lnk.Path;
+                }
+                else
+                {
+                    if (File.Exists(lnk.Path.Replace("(x86)", "")))
+                    {
+                        path = lnk.Path.Replace("(x86)", "");
+                    }
+                }
                 working_dir = lnk.WorkingDirectory;
                 args = lnk.Arguments;
                 return "";
@@ -134,6 +175,12 @@ namespace LaunchMenu
             {
                 return ex.Message;
             }
+        }
+
+        private void Update_Clicked(object sender, RoutedEventArgs e)
+        {
+            wp_Content.Children.Clear();
+            ReadShortcuts();
         }
     }
 }

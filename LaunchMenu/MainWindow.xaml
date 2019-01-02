@@ -5,11 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LaunchMenu"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <Button x:Name="btn_AddShortcut" Content="Add connection" HorizontalAlignment="Left" Margin="549,76,0,0" VerticalAlignment="Top" Width="75" Click="RunAllApps" />
-        <ScrollViewer  HorizontalAlignment="Left" Height="345" Margin="26,38,0,0" VerticalAlignment="Top" Width="203">
-            <WrapPanel x:Name="wp_Content" HorizontalAlignment="Left"   VerticalAlignment="Top"  Width="193" />
+        Title="Start Meny" Height="450" Width="623.333">
+    <Grid Margin="0,0,2,0">
+        <Button x:Name="btn_AddShortcut" Content="Snarveier" HorizontalAlignment="Left" Margin="543,10,0,0" VerticalAlignment="Top" Width="58" Click="OpenShortcutFolder" Height="23" />
+        <ScrollViewer  HorizontalAlignment="Left" Height="345" Margin="26,38,0,0" VerticalAlignment="Top" Width="370">
+            <WrapPanel x:Name="wp_Content" HorizontalAlignment="Left"   VerticalAlignment="Top"  Width="350" />
         </ScrollViewer>
+        <Button x:Name="btn_Update" Content="Oppdater" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="463,12,0,0" Click="Update_Clicked" />
     </Grid>
 </Window>
